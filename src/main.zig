@@ -11,6 +11,9 @@ const Op = enum {
     bxor,
     shl,
     shr,
+    lt,
+    gt,
+    eq,
 };
 
 const Node = union(enum) {
@@ -63,6 +66,8 @@ const Parser = struct {
             .bor => 1,
             .bxor => 2,
             .band => 3,
+            .eq => 4,
+            .lt, .gt => 5,
             .shl, .shr => 6,
             .add, .sub => 7,
             .mul, .div, .mod => 8,
@@ -77,8 +82,10 @@ const Parser = struct {
             '-' => .sub,
             '*' => .mul,
             '/' => .div,
-            '<' => if (d == '<') .shl else return null,
-            '>' => if (d == '>') .shr else return null,
+            '%' => .mod,
+            '=' => if (d == '=') .eq else return null,
+            '<' => if (d == '<') .shl else .lt,
+            '>' => if (d == '>') .shr else .gt,
             '&' => .band,
             '|' => .bor,
             '^' => .bxor,
@@ -86,6 +93,7 @@ const Parser = struct {
         };
         self.pos += switch (op) {
             .shl, .shr => @as(usize, 2),
+            .eq => @as(usize, 2),
             else => 1,
         };
         return op;
