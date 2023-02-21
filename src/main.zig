@@ -115,6 +115,32 @@ const Parser = struct {
     }
 };
 
+fn eval(n: *const Node, t: u32) u32 {
+    return switch (n.*) {
+        .t => t,
+        .num => |v| v,
+        .bin => |b| blk: {
+            const l = eval(b.l, t);
+            const r = eval(b.r, t);
+            break :blk switch (b.op) {
+                .add => l +% r,
+                .sub => l -% r,
+                .mul => l *% r,
+                .div => if (r == 0) 0 else l / r,
+                .mod => if (r == 0) 0 else l % r,
+                .band => l & r,
+                .bor => l | r,
+                .bxor => l ^ r,
+                .shl => l << @truncate(u5, r),
+                .shr => l >> @truncate(u5, r),
+                .lt => @boolToInt(l < r),
+                .gt => @boolToInt(l > r),
+                .eq => @boolToInt(l == r),
+            };
+        },
+    };
+}
+
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const alloc = gpa.allocator();
