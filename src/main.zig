@@ -146,13 +146,19 @@ pub fn main() !void {
     const alloc = gpa.allocator();
     const args = try std.process.argsAlloc(alloc);
     defer std.process.argsFree(alloc, args);
+    var out_path: ?[]const u8 = null;
+    var argi: usize = 1;
+    if (args.len > 2 and std.mem.eql(u8, args[1], "-o")) {
+        out_path = args[2];
+        argi = 3;
+    }
     if (args.len < 4) {
         std.debug.print("usage: bytebeat FORMULA RATE SECONDS\n", .{});
         std.process.exit(2);
     }
-    const formula = args[1];
-    const rate = try std.fmt.parseInt(u32, args[2], 10);
-    const seconds = try std.fmt.parseInt(u32, args[3], 10);
+    const formula = args[argi];
+    const rate = try std.fmt.parseInt(u32, args[argi + 1], 10);
+    const seconds = try std.fmt.parseInt(u32, args[argi + 2], 10);
     var p = Parser{ .src = formula, .alloc = alloc };
     const root = try p.expr(0);
     const out = std.io.getStdOut().writer();
